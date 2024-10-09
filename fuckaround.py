@@ -34,7 +34,7 @@ def calculate_average_position(file_path):
         return None
 
 def main():
-    file_path = r'C:\Users\lukec\ExpectedGoalsModel\Suburbs GPS data\Hannah.csv'  # Replace with your CSV file path
+    file_path = r'C:\Users\lukec\Expected Goals Model\ExpectedGoalsModel\Suburbs GPS data\Penny.csv'
     
     result = calculate_average_position(file_path)
     loc1 = (-36.915762, 174.742005)

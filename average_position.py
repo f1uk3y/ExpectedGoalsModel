@@ -25,24 +25,26 @@ def plot_average_positions(folder_path):
     }
 
     # Create the pitch
-    pitch = VerticalPitch(pad_bottom=0.5, half=False, goal_type='box', goal_alpha=0.8)
+    pitch = VerticalPitch(pad_bottom=0.5, half=False, goal_type='box', goal_alpha=0.8, pitch_type = 'custom', pitch_width = 70, pitch_length = 105)
     fig, ax = pitch.draw(figsize=(12, 8))
 
     # Convert GPS coordinates to pitch coordinates
     def gps_to_pitch(lon, lat):
         # Calculate pitch dimensions
-        pitch_width = 68
-        pitch_length = 105
+        pitch_width = 105  # Standard width in meters
+        pitch_length = 70  # Standard length in meters
 
         # Calculate GPS coordinate ranges
         lat_range = corners['top_left'][0] - corners['bottom_left'][0]
         lon_range = corners['bottom_right'][1] - corners['bottom_left'][1]
 
-        # Normalize coordinates
-        x = (corners['bottom_left'][1]-lon) / lon_range * pitch_width
-        y = (lat - corners['bottom_left'][0]) / lat_range * pitch_length
+        # Normalize coordinates to match target values
+        x_norm = (lon - corners['bottom_left'][1]) / lon_range
+        y_norm = (lat - corners['bottom_left'][0]) / lat_range
 
-        # Flip y-axis
+        # Scale to pitch dimensions
+        x = x_norm * pitch_width
+        y = y_norm* pitch_length  # Flip y-axis to match the pitch coordinate system
 
         return x, y
 
@@ -70,5 +72,5 @@ def plot_average_positions(folder_path):
     plt.show()
 
 # Example usage
-folder_path = r'C:\Users\lukec\ExpectedGoalsModel\Suburbs GPS data'  # Replace with the actual path to your folder
+folder_path = r'C:\Users\lukec\Expected Goals Model\ExpectedGoalsModel\Suburbs GPS data'  # Replace with the actual path to your folder
 plot_average_positions(folder_path)
