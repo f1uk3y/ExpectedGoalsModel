@@ -27,14 +27,14 @@ def plot_average_positions(folder_path):
     fig, ax = pitch.draw(figsize=(12, 8))
 
     def gps_to_pitch(lon, lat):
-        pitch_width = 70
-        pitch_length = 105
+        pitch_width = 105
+        pitch_length = 70
 
-        lat_range = corners['top_left'][0] - corners['bottom_left'][0]
-        lon_range = corners['bottom_right'][1] - corners['bottom_left'][1]
+        lat_range = corners['top_left'][1] - corners['bottom_left'][1]
+        lon_range = corners['bottom_right'][0] - corners['bottom_left'][0]
 
-        x = (corners['bottom_left'][1]-lon) / lon_range * pitch_width
-        y = (lat - corners['bottom_left'][0]) / lat_range * pitch_length
+        y = (1-(corners['bottom_left'][0]-lon) / lon_range) * pitch_width
+        x = (lat - corners['bottom_left'][1]) / lat_range * pitch_length
 
 
         return x, y
@@ -48,14 +48,14 @@ def plot_average_positions(folder_path):
             
             avg_x, avg_y = gps_to_pitch(avg_longitude, avg_latitude)
 
-            ax.scatter(avg_x, avg_y, s=200, c=[colors[i]], marker='o', zorder=2, label=filename[:-4])
-            ax.text(avg_x + 1, avg_y + 1, filename[:-4], fontsize=8, color=colors[i])
-
+            ax.scatter(avg_y, avg_x, s=200, c=[colors[i]], marker='o', zorder=2, label=filename[:-4])
+            ax.text(avg_y + 1, avg_x + 1, filename[:-4], fontsize=8, color=colors[i])
+    ax.scatter(120,80,  s=200)
     ax.set_title("Players' Average Positions", fontsize=16)
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
     plt.tight_layout()
     plt.show()
 
 dirname = os.path.dirname(__file__)
-file_path = os.path.join(dirname, 'Suburbs GPS data')
-plot_average_positions(file_path)
+folder_path = os.path.join(dirname, 'Suburbs GPS data')
+plot_average_positions(folder_path)
