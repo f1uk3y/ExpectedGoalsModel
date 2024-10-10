@@ -1,72 +1,96 @@
-import matplotlib.pyplot as plt
-from mplsoccer import VerticalPitch
-import numpy as np
+import csv
 import os
-import pandas as pd
+import statistics
 from datetime import datetime
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 
 def calculate_average_position(file_path):
-    df = pd.read_csv(file_path)
+    longitudes = []
+    latitudes = []
     start_of_first_half = datetime.strptime("17:02:06", "%H:%M:%S").time()
     end_of_first_half = datetime.strptime("17:48:03", "%H:%M:%S").time()
-    df['Excel Timestamp'] = pd.to_datetime(df['Excel Timestamp'], format="%H:%M:%S").dt.time
-    first_half = df.loc[(df['Excel Timestamp']>=start_of_first_half) & (df['Excel Timestamp']<=end_of_first_half)]
-    avg_longitude = first_half[' Longitude'].mean()
-    avg_latitude = first_half[' Latitude'].mean()
-    return avg_longitude, avg_latitude
+
+    with open(file_path, 'r') as csvfile:
+        csv_reader = csv.DictReader(csvfile)
+        
+        for row in csv_reader:
+            try:
+                time = datetime.strptime(row['Excel Timestamp'], "%H:%M:%S").time()
+                if start_of_first_half <= time <= end_of_first_half:
+                    longitude = float(row[' Longitude'])
+                    latitude = float(row[' Latitude'])
+                    longitudes.append(longitude)
+                    latitudes.append(latitude)
+            except ValueError:
+                print(f"Skipping invalid data: {row}")
+    
+    if longitudes and latitudes:
+        avg_longitude = statistics.mean(longitudes)
+        avg_latitude = statistics.mean(latitudes)
+        return avg_latitude, avg_longitude
+    else:
+        return None
 
 def plot_average_positions(folder_path):
-    # Define the corner coordinates
-    corners = {
-        'bottom_left': (-36.916643, 174.741573),
-        'top_left': (-36.915760, 174.742005),
-        'top_right': (-36.915983, 174.742715),
-        'bottom_right': (-36.916861, 174.742285)
-    }
+    players = []
+    latitudes = []
+    longitudes = []
 
-    # Create the pitch
-    pitch = VerticalPitch(pad_bottom=0.5, half=False, goal_type='box', goal_alpha=0.8, axis=True)
-    fig, ax = pitch.draw(figsize=(12, 8))
-
-    # Convert GPS coordinates to pitch coordinates
-    def gps_to_pitch(lon, lat):
-        # Calculate the relative position
-        y_rel = (lon - corners['bottom_left'][1]) / (corners['bottom_right'][1] - corners['bottom_left'][1])
-        x_rel = (corners['bottom_left'][0] - lat) / (corners['bottom_left'][0] - corners['top_left'][0])
-        
-        # Convert to pitch coordinates (assuming pitch is 105x70 meters)
-        x = x_rel * 105
-        y = (1-y_rel) * 70
-        return x, y
-
-    # Colors for different players
-    colors = plt.cm.rainbow(np.linspace(0, 1, len(os.listdir(folder_path))))
-
-    # Process each CSV file in the folder
-    for i, filename in enumerate(os.listdir(folder_path)):
+    for filename in os.listdir(folder_path):
         if filename.endswith('.csv'):
             file_path = os.path.join(folder_path, filename)
-            avg_longitude, avg_latitude = calculate_average_position(file_path)
+            result = calculate_average_position(file_path)
             
-            # Convert average position to pitch coordinates
-            #avg_x, avg_y = gps_to_pitch(avg_longitude, avg_latitude)
+            if result:
+                lat, lon = result
+                players.append(filename[:-4])  
+                latitudes.append(lat)
+                longitudes.append(lon)
 
-            ax.scatter(-36.916197, 174.741985, s=200, c=[colors[i]], marker='o', zorder=2,)
-            ax.scatter(avg_longitude, avg_latitude, s=200, c=[colors[i]], marker='o', zorder=2, label=filename[:-4])
-            ax.text(avg_longitude + 1, avg_latitude + 1, filename[:-4], fontsize=8, color=colors[i])
- 
+    plt.figure(figsize=(10, 8))
+    plt.scatter(longitudes, latitudes, marker='o')
+
+    for i, player in enumerate(players):
+        plt.annotate(player, (longitudes[i], latitudes[i]), xytext=(5, 5), textcoords='offset points')
+
+    field_coords = [
+        (-36.916643, 174.741573),  # Bottom left corner
+        (-36.915760, 174.742005),  # Top left
+        (-36.915983, 174.742715),  # Top right
+        (-36.916861, 174.742285),  # Bottom right
+        (-36.916643, 174.741573)   # Closing the polygon
+    ]
+    field_lats, field_lons = zip(*field_coords)
     
-    # Set title and legend
-    ax.set_title("Players' Average Positions", fontsize=16)
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
-    ax.set_xlim(174.741573, 174.742285)
-    ax.set_ylim(-36.916643, -36.915760)
+    # Create the plot
+    fig, ax = plt.subplots(figsize=(10, 8))
 
-    # Show the plot
-    plt.tight_layout()
+    # Load and display the football field image
+    field_image = mpimg.imread(r'C:\Users\lukec\Expected Goals Model\ExpectedGoalsModel\background_img.png')  # Replace with your image path
+    ax.imshow(field_image, extent=[min(field_lons), max(field_lons), min(field_lats), max(field_lats)], aspect='auto', alpha=0.5)
+
+    # Plot player positions
+    ax.scatter(longitudes, latitudes, marker='o')
+
+    # Label each point with the player's name
+    for i, player in enumerate(players):
+        ax.annotate(player, (longitudes[i], latitudes[i]), xytext=(5, 5), textcoords='offset points')
+
+    # Plot the field boundaries
+    ax.plot(field_lons, field_lats, 'r-')
+
+    ax.set_title("Average Positions of Football Players")
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    ax.axis('off')
     plt.show()
 
-# Example usage
-folder_path = r'C:\Users\lukec\Expected Goals Model\ExpectedGoalsModel\Suburbs GPS data'  # Replace with the actual path to your folder
-plot_average_positions(folder_path)
+def main():
+    dirname = os.path.dirname(__file__)
+    folder_path = os.path.join(dirname, 'Suburbs GPS data')
+    plot_average_positions(folder_path)
+
+if __name__ == "__main__":
+    main()
