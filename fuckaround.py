@@ -1,4 +1,5 @@
 import csv
+import os
 import statistics
 from datetime import datetime
 import haversine as hs
@@ -34,7 +35,8 @@ def calculate_average_position(file_path):
         return None
 
 def main():
-    file_path = r'C:\Users\lukec\Expected Goals Model\ExpectedGoalsModel\Suburbs GPS data\Penny.csv'
+    dirname = os.path.dirname(__file__)
+    file_path = os.path.join(dirname, 'Suburbs GPS data/Hannah.csv')
     
     result = calculate_average_position(file_path)
     loc1 = (-36.915762, 174.742005)
