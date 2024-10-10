@@ -11,7 +11,6 @@ def calculate_average_position(file_path):
     start_of_first_half = datetime.strptime("17:02:06", "%H:%M:%S").time()
     end_of_first_half = datetime.strptime("17:48:03", "%H:%M:%S").time()
 
-    # Read the CSV file
     with open(file_path, 'r') as csvfile:
         csv_reader = csv.DictReader(csvfile)
         
@@ -26,7 +25,6 @@ def calculate_average_position(file_path):
             except ValueError:
                 print(f"Skipping invalid data: {row}")
     
-    # Calculate average position
     if longitudes and latitudes:
         avg_longitude = statistics.mean(longitudes)
         avg_latitude = statistics.mean(latitudes)

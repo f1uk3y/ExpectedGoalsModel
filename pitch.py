@@ -64,21 +64,16 @@ def plot_average_positions(folder_path):
     ]
     field_lats, field_lons = zip(*field_coords)
     
-    # Create the plot
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    # Load and display the football field image
-    field_image = mpimg.imread(r'C:\Users\lukec\Expected Goals Model\ExpectedGoalsModel\background_img.png')  # Replace with your image path
+    field_image = mpimg.imread(r'C:\Users\lukec\Expected Goals Model\ExpectedGoalsModel\background_img.png') 
     ax.imshow(field_image, extent=[min(field_lons), max(field_lons), min(field_lats), max(field_lats)], aspect='auto', alpha=0.5)
 
-    # Plot player positions
     ax.scatter(longitudes, latitudes, marker='o')
 
-    # Label each point with the player's name
     for i, player in enumerate(players):
         ax.annotate(player, (longitudes[i], latitudes[i]), xytext=(5, 5), textcoords='offset points')
 
-    # Plot the field boundaries
     ax.plot(field_lons, field_lats, 'r-')
 
     ax.set_title("Average Positions of Football Players")
