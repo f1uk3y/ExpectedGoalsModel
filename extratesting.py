@@ -27,7 +27,7 @@ def update_shot_outcome(label):
     print(f"Selected outcome: {shot_outcome}")
 
 # Load the football pitch image
-img = mpimg.imread('football_pitch_image.png')
+img = mpimg.imread(r'ExpectedGoalsModel\football_pitch_image.png')
 
 # Set up the plot
 fig, ax = plt.subplots()
