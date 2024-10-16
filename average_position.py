@@ -3,22 +3,20 @@ import os
 import statistics
 from datetime import datetime
 import matplotlib.pyplot as plt
+import xlrd
 
-def calculate_average_position(file_path):
+def calculate_average_position(file_path, start, end):
     longitudes = []
     latitudes = []
-    start = input("When was the start of the first half? (HH:MM:SS format) ")
-    end = input("When was the end of the first half? (HH:MM:SS format) ")
-    start_of_first_half = datetime.strptime(start, "%H:%M:%S").time()
-    end_of_first_half = datetime.strptime(end, "%H:%M:%S").time()
 
     with open(file_path, 'r') as csvfile:
         csv_reader = csv.DictReader(csvfile)
         
         for row in csv_reader:
             try:
-                time = datetime.strptime(row['Excel Timestamp'], "%H:%M:%S").time()
-                if start_of_first_half <= time <= end_of_first_half:
+                datetime_date = xlrd.xldate_as_datetime(float(row['Excel Timestamp']), 0)
+                time = datetime_date.strptime(datetime_date.strftime( "%H:%M:%S"), "%H:%M:%S").time()
+                if start <= time <= end:
                     longitude = float(row[' Longitude'])
                     latitude = float(row[' Latitude'])
                     longitudes.append(longitude)
@@ -37,11 +35,16 @@ def plot_average_positions(folder_path):
     players = []
     latitudes = []
     longitudes = []
+    
+    start = input("When was the start of the first half? (HH:MM:SS format) ")
+    end = input("When was the end of the first half? (HH:MM:SS format) ")
+    start_of_first_half = datetime.strptime(start, "%H:%M:%S").time()
+    end_of_first_half = datetime.strptime(end, "%H:%M:%S").time()
 
     for filename in os.listdir(folder_path):
         if filename.endswith('.csv'):
             file_path = os.path.join(folder_path, filename)
-            result = calculate_average_position(file_path)
+            result = calculate_average_position(file_path, start_of_first_half, end_of_first_half)
             if result:
                 lat, lon = result
                 players.append(filename[:-4])  
@@ -76,7 +79,7 @@ def plot_average_positions(folder_path):
         plt.plot(half_lons, half_lats, 'r-')
         plt.scatter(174.742146,-36.916312, marker='o', c='red')
     elif home_or_away == "N":
-        bottom_right = input("Bottom left corner: ")
+        bottom_left = input("Bottom left corner: ")
         top_left = input("Top left corner: ")
         top_right = input("Top right corner: ")
         bottom_right = input("Bottom right corner: ")
@@ -107,9 +110,9 @@ def plot_average_positions(folder_path):
         ]
         half_lats, half_lons = zip(*half_coords)
         plt.plot(half_lons, half_lats, 'r-')
-        midpoint = input("Kick off point: ")
+        """midpoint = input("Kick off point: ")
         midpoint = tuple(float(x) for x in midpoint.split(','))
-        plt.scatter(midpoint[0], midpoint[1], marker='o', c='red')
+        plt.scatter(midpoint[0], midpoint[1], marker='o', c='red')"""
 
 
     plt.title("Average Positions of Football Players")
